@@ -1,4 +1,60 @@
-const API_BASE = "https://lakon-api.onrender.com"; // Official Lakon API. Change to your own endpoint if hosting the backend.
+const API_BASE = "https://lakon-api.onrender.com";
+
+// --- STYLING ---
+const style = document.createElement('style');
+style.textContent = `
+  @keyframes lakon-fade-up {
+    0% { opacity: 0; transform: translateY(10px); }
+    15% { opacity: 1; transform: translateY(0); }
+    85% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-10px); }
+  }
+  .lakon-toast {
+    position: absolute;
+    background: #000;
+    color: #fff;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-family: sans-serif;
+    pointer-events: none;
+    z-index: 10000;
+    white-space: nowrap;
+    animation: lakon-fade-up 2s ease forwards;
+  }
+  .lakon-undo-btn {
+    background: transparent;
+    border: 1px solid #ccc;
+    color: #666;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    cursor: pointer;
+    margin-left: 8px;
+    transition: all 0.2s;
+    height: 24px;
+    display: flex;
+    align-items: center;
+  }
+  .lakon-undo-btn:hover {
+    background: #eee;
+    color: #000;
+  }
+`;
+document.head.appendChild(style);
+
+let lastOriginalText = null;
+let activeUndoBtn = null;
+let undoTimeout = null;
+
+function cleanupUndo() {
+  if (activeUndoBtn) {
+    activeUndoBtn.remove();
+    activeUndoBtn = null;
+  }
+  lastOriginalText = null;
+  if (undoTimeout) clearTimeout(undoTimeout);
+}
 
 const CONFIG = [
   {
@@ -16,7 +72,6 @@ const CONFIG = [
     host: ["chatgpt.com", "chat.openai.com"],
     inputSelector: 'div[contenteditable="true"]#prompt-textarea',
     injectFn: (input, btn) => {
-      // ChatGPT has a wrapper around the input and the send button
       const sendBtn = input.parentElement?.parentElement?.querySelector('button[data-testid="send-button"]');
       const container = sendBtn ? sendBtn.parentElement : input.parentElement?.parentElement;
       if (container && !container.querySelector('.lakon-shrink-btn')) {
@@ -39,24 +94,14 @@ const CONFIG = [
     injectFn: (input, btn) => {
       const sendBtn = document.querySelector('button.send-button, button[aria-label="Send message"], button[data-testid="send-button"]');
       if (!sendBtn) return;
-
-      // Gemini wraps the send button in a tightly constrained container (causing clipping).
-      // We inject into the grandparent (the full toolbar) to avoid this.
       const sendWrapper = sendBtn.parentElement;
       const toolbar = sendWrapper?.parentElement;
-      
       if (!toolbar || toolbar.querySelector('.lakon-shrink-btn')) return;
-
-      // Reset styling
       btn.style.position = 'relative';
       btn.style.margin = '0 8px';
       btn.style.background = 'transparent';
       btn.style.zIndex = '100';
-      
-      // The element immediately before the sendWrapper is the model picker ("Pro").
-      // We insert before it to achieve the requested [Bolt] [Pro] [Send] layout.
       const modelPickerWrapper = sendWrapper.previousElementSibling;
-      
       try {
         if (modelPickerWrapper) {
           toolbar.insertBefore(btn, modelPickerWrapper);
@@ -64,7 +109,6 @@ const CONFIG = [
           toolbar.insertBefore(btn, sendWrapper);
         }
       } catch (e) {
-        // Safe fallback
         toolbar.appendChild(btn);
       }
     },
@@ -91,6 +135,47 @@ const CONFIG = [
   }
 ];
 
+function showToast(anchor, text) {
+  const toast = document.createElement('div');
+  toast.className = 'lakon-toast';
+  toast.textContent = text;
+  
+  // Position it relative to the button
+  const rect = anchor.getBoundingClientRect();
+  toast.style.left = `${rect.left + (rect.width/2)}px`;
+  toast.style.top = `${rect.top - 30 + window.scrollY}px`;
+  toast.style.transform = 'translateX(-50%)';
+  
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 2100);
+}
+
+function showUndo(container, input, platform) {
+  cleanupUndo();
+  
+  const undoBtn = document.createElement('button');
+  undoBtn.className = 'lakon-undo-btn';
+  undoBtn.innerHTML = `<span>Undo</span>`;
+  undoBtn.onclick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (lastOriginalText) {
+      platform.set(input, lastOriginalText);
+      cleanupUndo();
+    }
+  };
+  
+  // Find where to insert (next to Lakon button)
+  const lakonBtn = container.querySelector('.lakon-shrink-btn');
+  if (lakonBtn) {
+    lakonBtn.insertAdjacentElement('afterend', undoBtn);
+    activeUndoBtn = undoBtn;
+    
+    // Auto cleanup after 5 seconds
+    undoTimeout = setTimeout(cleanupUndo, 5000);
+  }
+}
+
 function createButton(input, platform) {
   const shrinkBtn = document.createElement("button");
   shrinkBtn.className = "lakon-shrink-btn";
@@ -105,11 +190,9 @@ function createButton(input, platform) {
         stroke-width="1.5" stroke-linejoin="round"/>
 </svg>`;
 
-  // Check platform for specific styling
   const isClaude = window.location.hostname.includes('claude.ai');
   const isGemini = window.location.hostname.includes('gemini.google.com');
 
-  // Start invisible for smooth fade-in
   shrinkBtn.style.cssText = `
     background: transparent;
     border: none;
@@ -128,7 +211,6 @@ function createButton(input, platform) {
     flex-shrink: 0;
   `;
 
-  // Fade in smoothly after a brief paint frame
   requestAnimationFrame(() => {
     requestAnimationFrame(() => {
       shrinkBtn.style.opacity = '0.7';
@@ -155,7 +237,6 @@ function createButton(input, platform) {
     const text = platform.get(input);
     if (!text || !text.trim()) return;
 
-    // Loading state
     shrinkBtn.style.opacity = '0.3';
     shrinkBtn.disabled = true;
     shrinkBtn.title = "Shrinking...";
@@ -176,10 +257,12 @@ function createButton(input, platform) {
       });
 
       clearTimeout(timeoutId);
-
       if (!res.ok) throw new Error("API Error");
 
       const data = await res.json();
+      
+      // Save for Undo
+      lastOriginalText = text;
       
       platform.set(input, data.compressed);
 
@@ -190,7 +273,10 @@ function createButton(input, platform) {
         lastCompressedAt: Date.now()
       });
 
-      // Success state
+      // Show Toast & Undo
+      showToast(shrinkBtn, `-${data.tokens_before - data.tokens_after} tokens`);
+      showUndo(shrinkBtn.parentElement, input, platform);
+
       shrinkBtn.style.opacity = '1';
       shrinkBtn.style.filter = 'drop-shadow(0 0 4px #9EFF82)';
       shrinkBtn.title = `✓ Saved ${data.reduction_pct}%`;
@@ -204,7 +290,6 @@ function createButton(input, platform) {
       }, 2000);
 
     } catch (err) {
-      // Fail silently and reset
       shrinkBtn.title = "Shrink with Lakon";
       shrinkBtn.disabled = false;
       shrinkBtn.style.opacity = '0.7';
@@ -214,7 +299,6 @@ function createButton(input, platform) {
   return shrinkBtn;
 }
 
-// Determine which platform we are on
 const currentHost = window.location.hostname;
 const platform = CONFIG.find(c => 
   Array.isArray(c.host) ? c.host.some(h => currentHost.includes(h)) : currentHost.includes(c.host)
@@ -229,13 +313,17 @@ if (platform) {
     const input = document.querySelector(platform.inputSelector);
     const existingBtn = document.querySelector('.lakon-shrink-btn');
 
-    if (isClaude) {
-      // Claude: tie the Lakon button directly to the send button's existence.
-      // The send button only appears when there is text in the input.
-      const sendBtn = document.querySelector(platform.claudeSendSelector);
+    if (input && !input.dataset.lakonListener) {
+      input.addEventListener('input', () => {
+        // If user types, remove undo
+        if (lastOriginalText) cleanupUndo();
+      });
+      input.dataset.lakonListener = "true";
+    }
 
+    if (isClaude) {
+      const sendBtn = document.querySelector(platform.claudeSendSelector);
       if (input && sendBtn && !existingBtn) {
-        // Send button just appeared — inject Lakon button next to it
         const btn = createButton(input, platform);
         const flexContainer = sendBtn.closest('.flex') || sendBtn.parentElement;
         let targetNode = sendBtn;
@@ -244,11 +332,10 @@ if (platform) {
         }
         flexContainer.insertBefore(btn, targetNode);
       } else if (!sendBtn && existingBtn) {
-        // Send button disappeared (text cleared) — remove Lakon button too
         existingBtn.remove();
+        cleanupUndo();
       }
     } else {
-      // Other platforms: standard inject once the input is found
       if (input && !existingBtn) {
         const btn = createButton(input, platform);
         platform.injectFn(input, btn);
