@@ -1,4 +1,4 @@
-# Lakon Public — Chrome Extension
+# Lakon Chrome Extension
 
 The companion extension for Lakon. Injects a button into Claude, ChatGPT, Gemini, and GitHub Copilot Chat to compress your prompts semantically, saving tokens and costs.
 
@@ -7,7 +7,7 @@ The companion extension for Lakon. Injects a button into Claude, ChatGPT, Gemini
 1. Open Chrome and navigate to `chrome://extensions/`.
 2. Enable **Developer mode** using the toggle in the top-right corner.
 3. Click the **Load unpacked** button.
-4. Select the `extension` folder from this project directory.
+4. Select the `extension` folder from this project directory (`d:\PromptShrink\extension`).
 
 ## Features
 

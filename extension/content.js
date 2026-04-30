@@ -23,25 +23,42 @@ style.textContent = `
     animation: lakon-fade-up 2s ease forwards;
   }
   .lakon-undo-btn {
-    background: transparent;
-    border: 1px solid #ddd;
-    color: #888;
+    background: transparent !important;
+    border: none !important;
+    color: #ccc; 
     padding: 0;
-    border-radius: 50%;
     cursor: pointer;
-    margin-left: 8px;
-    transition: all 0.2s;
-    width: 24px;
-    height: 24px;
+    margin-right: 4px;
+    transition: background 0.2s;
+    width: 28px;
+    height: 28px;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+    border-radius: 50%;
   }
   .lakon-undo-btn:hover {
-    background: #f5f5f5;
-    color: #111;
-    border-color: #bbb;
+    background: rgba(255,255,255,0.08) !important;
+  }
+  .lakon-shrink-btn {
+    background: transparent !important;
+  }
+  .lakon-tooltip {
+    position: absolute;
+    background: #000;
+    color: #fff;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    pointer-events: none;
+    z-index: 10001;
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.15s;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    border: 0.5px solid rgba(255,255,255,0.1);
   }
 `;
 document.head.appendChild(style);
@@ -75,14 +92,21 @@ const CONFIG = [
     host: ["chatgpt.com", "chat.openai.com"],
     inputSelector: 'div[contenteditable="true"]#prompt-textarea',
     injectFn: (input, btn) => {
-      const sendBtn = input.parentElement?.parentElement?.querySelector('button[data-testid="send-button"]');
-      const container = sendBtn ? sendBtn.parentElement : input.parentElement?.parentElement;
-      if (container && !container.querySelector('.lakon-shrink-btn')) {
-        if (sendBtn) {
-          container.insertBefore(btn, sendBtn);
-        } else {
-          container.appendChild(btn);
-        }
+      const sendBtn = document.querySelector('button[data-testid="send-button"]');
+      if (!sendBtn) return;
+      
+      const actionBar = sendBtn.parentElement;
+      const mainWrapper = actionBar?.parentElement;
+      
+      if (mainWrapper && !mainWrapper.querySelector('.lakon-shrink-btn')) {
+        // Use a dedicated wrapper to isolate from ChatGPT's button CSS
+        // By relying on the parent's native flex alignment, we ensure perfect vertical centering.
+        const lakonWrapper = document.createElement('div');
+        lakonWrapper.className = 'lakon-wrapper';
+        lakonWrapper.style.cssText = 'display: flex; align-items: center; justify-content: center; margin-right: 4px; z-index: 100;';
+        lakonWrapper.appendChild(btn);
+        
+        mainWrapper.insertBefore(lakonWrapper, actionBar);
       }
     },
     get: (el) => el.innerText,
@@ -153,22 +177,54 @@ function showToast(anchor, text) {
   setTimeout(() => toast.remove(), 2100);
 }
 
+let activeTooltip = null;
+
+function showTooltip(anchor, text) {
+  hideTooltip();
+  const tip = document.createElement('div');
+  tip.className = 'lakon-tooltip';
+  tip.textContent = text;
+  document.body.appendChild(tip);
+  
+  const rect = anchor.getBoundingClientRect();
+  tip.style.left = `${rect.left + (rect.width/2) - (tip.offsetWidth/2)}px`;
+  tip.style.top = `${rect.bottom + 8 + window.scrollY}px`; // Below icon
+  
+  requestAnimationFrame(() => {
+    tip.style.opacity = '1';
+  });
+  activeTooltip = tip;
+}
+
+function hideTooltip() {
+  if (activeTooltip) {
+    activeTooltip.remove();
+    activeTooltip = null;
+  }
+}
+
 function showUndo(container, input, platform) {
   cleanupUndo();
   
   const undoBtn = document.createElement('button');
   undoBtn.className = 'lakon-undo-btn';
-  undoBtn.title = "Undo compression";
+  undoBtn.style.color = '#ccc'; // More like little white
+  
+  undoBtn.onmouseenter = () => showTooltip(undoBtn, "Undo");
+  undoBtn.onmouseleave = hideTooltip;
+
   undoBtn.innerHTML = `
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M3 7v6h6"></path>
-      <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"></path>
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 10h10a5 5 0 0 1 5 5v0a5 5 0 0 1-5 5h-2"></path>
+      <path d="M3 10l5-5"></path>
+      <path d="M3 10l5 5"></path>
     </svg>
   `;
   
   undoBtn.onclick = (e) => {
     e.preventDefault();
     e.stopPropagation();
+    hideTooltip();
     if (lastOriginalText) {
       platform.set(input, lastOriginalText);
       cleanupUndo();
@@ -177,7 +233,7 @@ function showUndo(container, input, platform) {
   
   const lakonBtn = container.querySelector('.lakon-shrink-btn');
   if (lakonBtn) {
-    lakonBtn.insertAdjacentElement('afterend', undoBtn);
+    lakonBtn.insertAdjacentElement('beforebegin', undoBtn);
     activeUndoBtn = undoBtn;
   }
 }
@@ -186,8 +242,22 @@ function createButton(input, platform) {
   const shrinkBtn = document.createElement("button");
   shrinkBtn.className = "lakon-shrink-btn";
   shrinkBtn.type = "button";
-  shrinkBtn.title = "Shrink with Lakon";
   
+  shrinkBtn.onmouseenter = () => {
+    if (!shrinkBtn.disabled) {
+      showTooltip(shrinkBtn, "Compress");
+      shrinkBtn.style.opacity = '1';
+      shrinkBtn.style.background = 'rgba(158,255,130,0.08)';
+    }
+  };
+  shrinkBtn.onmouseleave = () => {
+    hideTooltip();
+    if (!shrinkBtn.disabled) {
+      shrinkBtn.style.opacity = '0.7';
+      shrinkBtn.style.background = 'transparent';
+    }
+  };
+
   shrinkBtn.innerHTML = `
 <svg width="18" height="18" viewBox="0 0 24 24" 
      fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -223,19 +293,6 @@ function createButton(input, platform) {
     });
   });
 
-  shrinkBtn.onmouseenter = () => {
-    if (!shrinkBtn.disabled) {
-      shrinkBtn.style.opacity = '1';
-      shrinkBtn.style.background = 'rgba(158,255,130,0.08)';
-    }
-  };
-  shrinkBtn.onmouseleave = () => {
-    if (!shrinkBtn.disabled) {
-      shrinkBtn.style.opacity = '0.7';
-      shrinkBtn.style.background = 'transparent';
-    }
-  };
-
   shrinkBtn.onclick = async (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -245,7 +302,8 @@ function createButton(input, platform) {
 
     shrinkBtn.style.opacity = '0.3';
     shrinkBtn.disabled = true;
-    shrinkBtn.title = "Shrinking...";
+    hideTooltip();
+    showTooltip(shrinkBtn, "Compressing...");
 
     try {
       const controller = new AbortController();
@@ -283,12 +341,10 @@ function createButton(input, platform) {
       showToast(shrinkBtn, `-${data.tokens_before - data.tokens_after} tokens`);
       showUndo(shrinkBtn.parentElement, input, platform);
 
+      // Success state (clean & simple)
       shrinkBtn.style.opacity = '1';
-      shrinkBtn.style.filter = 'drop-shadow(0 0 4px #9EFF82)';
-      shrinkBtn.title = `✓ Saved ${data.reduction_pct}%`;
       
       setTimeout(() => {
-        shrinkBtn.title = "Shrink with Lakon";
         shrinkBtn.disabled = false;
         shrinkBtn.style.filter = 'none';
         shrinkBtn.style.opacity = '0.7';
