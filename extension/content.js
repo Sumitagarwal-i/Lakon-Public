@@ -24,21 +24,24 @@ style.textContent = `
   }
   .lakon-undo-btn {
     background: transparent;
-    border: 1px solid #ccc;
-    color: #666;
-    padding: 2px 8px;
-    border-radius: 4px;
-    font-size: 11px;
+    border: 1px solid #ddd;
+    color: #888;
+    padding: 0;
+    border-radius: 50%;
     cursor: pointer;
     margin-left: 8px;
     transition: all 0.2s;
+    width: 24px;
     height: 24px;
     display: flex;
     align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
   }
   .lakon-undo-btn:hover {
-    background: #eee;
-    color: #000;
+    background: #f5f5f5;
+    color: #111;
+    border-color: #bbb;
   }
 `;
 document.head.appendChild(style);
@@ -155,7 +158,14 @@ function showUndo(container, input, platform) {
   
   const undoBtn = document.createElement('button');
   undoBtn.className = 'lakon-undo-btn';
-  undoBtn.innerHTML = `<span>Undo</span>`;
+  undoBtn.title = "Undo compression";
+  undoBtn.innerHTML = `
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 7v6h6"></path>
+      <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"></path>
+    </svg>
+  `;
+  
   undoBtn.onclick = (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -165,14 +175,10 @@ function showUndo(container, input, platform) {
     }
   };
   
-  // Find where to insert (next to Lakon button)
   const lakonBtn = container.querySelector('.lakon-shrink-btn');
   if (lakonBtn) {
     lakonBtn.insertAdjacentElement('afterend', undoBtn);
     activeUndoBtn = undoBtn;
-    
-    // Auto cleanup after 5 seconds
-    undoTimeout = setTimeout(cleanupUndo, 5000);
   }
 }
 
