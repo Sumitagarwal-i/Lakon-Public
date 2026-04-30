@@ -38,10 +38,11 @@ This repository contains the **Public Interface** of Lakon to build transparency
 
 Lakon is built on a **Zero-Retention** philosophy.
 
-- **No Prompt Storage**: We do not store the text you compress. Prompts are processed in real-time and passed directly to the model.
-- **Transparent Processing**: Fast, stateless processing with zero data hoarding.
-- **Local Control**: You can audit exactly how the extension interacts with your browser in the `/extension` folder.
-- **No Tracking**: We don't track your identity or browsing history.
+- **No Data Stored**: We do not store the text you compress. Prompts are processed in real-time and passed directly to the model.
+- **On-Click Processing Only**: Lakon only interacts with your text when you explicitly click the bolt icon. It never reads your data in the background.
+- **No Background Tracking**: We do not track your browsing history, identity, or usage patterns.
+
+*Everything is 100% auditable in this repository.*
 
 ---
 
