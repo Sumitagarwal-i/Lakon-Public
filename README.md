@@ -72,9 +72,7 @@ The easiest way to use Lakon is to download the pre-packaged extension from our 
 
 - [x] **v1.0**: Initial release for ChatGPT, Claude, and Gemini.
 - [x] **v1.1**: Trust & Value Update (Undo architecture, professional UI toasts, layout stability).
-- [ ] **v1.2**: Custom compression profiles (Strict vs. Creative).
-- [ ] **v1.3**: Advanced analytics dashboard for token savings.
-- [ ] **v2.0**: Enterprise API access and team management.
+
 
 ---
 
