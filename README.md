@@ -57,7 +57,7 @@ Lakon is built on a **Zero-Retention** philosophy.
 ## 📥 Installation
 
 ### **For Users**
-The easiest way to use Lakon is to download the pre-packaged extension from our [Official Site](https://lakon.vercel.app).
+The easiest way to use Lakon is to download the pre-packaged extension from our [Official Site](https://lakonai.vercel.app).
 
 ### **For Developers (Manual Install)**
 1. Clone this repository.
