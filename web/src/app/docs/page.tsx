@@ -268,7 +268,7 @@ export default function DocsPage() {
             {["Chrome", "Brave", "Opera", "Edge"].map(b => (
               <a
                 key={b}
-                href="/lakon-extension-chrome.zip"
+                href="/lakon-extension.zip"
                 download={`Lakon-Extension-${b.toLowerCase()}-v1.0.zip`}
                 style={{
                   ...mono,

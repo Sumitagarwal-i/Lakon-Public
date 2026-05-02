@@ -31,12 +31,12 @@ const INSTALL_LABEL: Record<BrowserType, string> = {
 };
 
 const INSTALL_HREF: Record<BrowserType, string> = {
-  chrome: "/lakon-extension-chrome.zip",
-  brave: "/lakon-extension-chrome.zip",
-  edge: "/lakon-extension-chrome.zip",
-  opera: "/lakon-extension-chrome.zip",
+  chrome: "/lakon-extension.zip",
+  brave: "/lakon-extension.zip",
+  edge: "/lakon-extension.zip",
+  opera: "/lakon-extension.zip",
   firefox: "https://addons.mozilla.org",
-  other: "/lakon-extension-chrome.zip",
+  other: "/lakon-extension.zip",
 };
 
 const mono = { fontFamily: "var(--font-jetbrains-mono), monospace" } as const;
@@ -62,7 +62,7 @@ function InstallBtn({ browser, size = "md", id, scrollOnly = false }: { browser:
       if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
     } else {
       // Log download to Discord via backend
-      const api = process.env.NEXT_PUBLIC_API_URL || "https://lakon-api.onrender.com";
+      const api = "https://lakon-api.onrender.com";
       fetch(`${api}/track/event?name=Extension%20Download&details=Browser:%20${browser}%20|%20Location:%20${id.includes("hero") ? "Hero" : "Guide"}`).catch(() => {});
     }
   };
@@ -313,15 +313,40 @@ export default function HomePage() {
               )}
             </div>
 
-            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-              <span style={{ ...mono, fontSize: "11px", color: "var(--text-3)" }}>No account · Free forever</span>
-              <span style={{ color: "var(--border)" }}>·</span>
-              <Link href="/app" style={{ ...mono, fontSize: "11px", color: "var(--text-3)", textDecoration: "none" }}
-                onMouseEnter={e => e.currentTarget.style.color = "var(--text-2)"}
-                onMouseLeave={e => e.currentTarget.style.color = "var(--text-3)"}
-              >
-                Use web app instead →
-              </Link>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "10px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                <span style={{ ...mono, fontSize: "11px", color: "var(--text-3)" }}>No account · Free forever</span>
+                <span style={{ color: "var(--border)" }}>·</span>
+                <Link href="/app" style={{ ...mono, fontSize: "11px", color: "var(--text-3)", textDecoration: "none" }}
+                  onMouseEnter={e => e.currentTarget.style.color = "var(--text-2)"}
+                  onMouseLeave={e => e.currentTarget.style.color = "var(--text-3)"}
+                >
+                  Open Playground
+                </Link>
+              </div>
+
+              {/* Minimalist Trust Layer */}
+              <div style={{ 
+                display: "flex", 
+                alignItems: "center", 
+                gap: "16px", 
+                opacity: 0.9,
+                borderTop: "1px solid var(--border)",
+                paddingTop: "14px",
+                marginTop: "6px"
+              }}>
+                <span style={{ ...mono, fontSize: "10.5px", color: "var(--text-3)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                  No data is stored
+                </span>
+                <span style={{ color: "var(--border)", fontSize: "10.5px" }}>•</span>
+                <span style={{ ...mono, fontSize: "10.5px", color: "var(--text-3)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                  Only processes text when you click
+                </span>
+                <span style={{ color: "var(--border)", fontSize: "10.5px" }}>•</span>
+                <span style={{ ...mono, fontSize: "10.5px", color: "var(--text-3)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                  No background tracking
+                </span>
+              </div>
             </div>
           </div>
         </div>

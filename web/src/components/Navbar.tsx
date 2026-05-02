@@ -67,6 +67,7 @@ export default function Navbar() {
           {[
             { href: "/docs", label: "Docs" },
             { href: "/app", label: "Web App" },
+            { href: "/changelog", label: "Changelog" },
           ].map((l) => (
             <Link
               key={l.href}

@@ -238,16 +238,49 @@ export default function AppPage() {
 
       {/* ── Stats bar ───────────────────────────────────────────────────── */}
       {result && !error && (
-        <div style={{
-          flexShrink: 0,
-          borderTop: "0.8px solid var(--border)",
-          background: "var(--surface-2)",
-          padding: "10px 20px",
-          display: "flex",
-          alignItems: "center",
-          gap: "24px",
-          flexWrap: "wrap",
-        }}>
+        <>
+          <div style={{
+            flexShrink: 0,
+            padding: "8px 20px",
+            background: "rgba(158,255,130,0.05)",
+            borderTop: "0.8px solid var(--border)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            animation: "fade-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards"
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--green)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 2L4.5 13.5H11L10 22L19.5 10.5H13L13 2Z" fill="var(--green)" />
+              </svg>
+              <span style={{ ...mono, fontSize: "11px", color: "var(--text-1)" }}>
+                Want this instantly in your workflow? 
+              </span>
+            </div>
+            <a 
+              href="/lakon-extension.zip" 
+              download="lakon-extension.zip"
+              style={{ 
+                ...mono, 
+                fontSize: "11px", 
+                color: "var(--green)", 
+                textDecoration: "underline",
+                fontWeight: 500
+              }}
+            >
+              Install Lakon Extension →
+            </a>
+          </div>
+          <div style={{
+            flexShrink: 0,
+            borderTop: "0.8px solid var(--border)",
+            background: "var(--surface-2)",
+            padding: "10px 20px",
+            display: "flex",
+            alignItems: "center",
+            gap: "24px",
+            flexWrap: "wrap",
+          }}>
           <span style={{ ...mono, fontSize: "11px", color: "var(--text-2)" }}>
             {result.tokens_before} → {result.tokens_after} tokens
           </span>
@@ -266,6 +299,7 @@ export default function AppPage() {
           )}
           {result.warning && <span style={{ ...mono, fontSize: "11px", color: "var(--amber)" }}>⚠ {result.warning}</span>}
         </div>
+        </>
       )}
 
       {/* ── Compress button ─────────────────────────────────────────────── */}
@@ -292,7 +326,7 @@ export default function AppPage() {
         </div>
       </div>
 
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } } @keyframes pulse-dot { 0%,100%{opacity:1}50%{opacity:.35} }`}</style>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } } @keyframes pulse-dot { 0%,100%{opacity:1}50%{opacity:.35} } @keyframes fade-in { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }`}</style>
     </div>
   );
 }
