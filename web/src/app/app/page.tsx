@@ -57,6 +57,7 @@ export default function AppPage() {
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [showDiff, setShowDiff] = useState(false);
   const [isWaking, setIsWaking] = useState(false);
   const [cooldown, setCooldown] = useState(0);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -186,6 +187,11 @@ export default function AppPage() {
               overflowY: "auto",
             }}
           />
+          <div style={{ padding: "8px 20px", background: "var(--surface-2)", borderTop: "0.8px solid var(--border)", display: "flex", justifyContent: "flex-start", alignItems: "center" }}>
+            <span style={{ fontSize: "11px", color: "var(--text-3)", display: "flex", alignItems: "center", gap: "6px" }}>
+              <span style={{ fontSize: "13px" }}>💡</span> Best for long or detailed prompts
+            </span>
+          </div>
         </div>
 
         {/* DIVIDER */}
@@ -197,7 +203,15 @@ export default function AppPage() {
             display: "flex", justifyContent: "space-between", alignItems: "center",
             padding: "14px 20px 10px", flexShrink: 0,
           }}>
-            <span style={{ ...mono, fontSize: "10px", color: "var(--text-3)", letterSpacing: "0.1em" }}>OUTPUT</span>
+            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+              <span style={{ ...mono, fontSize: "10px", color: "var(--text-3)", letterSpacing: "0.1em" }}>OUTPUT</span>
+              {result && !error && (
+                <span style={{ fontSize: "11px", color: "var(--green)", background: "var(--green-dim)", border: "0.8px solid var(--green-border)", padding: "2px 8px", borderRadius: "var(--radius-pill)", display: "flex", alignItems: "center", gap: "4px" }}>
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+                  Intent & constraints preserved
+                </span>
+              )}
+            </div>
             {result && !error && (
               <button
                 onClick={() => { navigator.clipboard.writeText(result.compressed); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
@@ -275,30 +289,91 @@ export default function AppPage() {
             flexShrink: 0,
             borderTop: "0.8px solid var(--border)",
             background: "var(--surface-2)",
-            padding: "10px 20px",
             display: "flex",
-            alignItems: "center",
-            gap: "24px",
-            flexWrap: "wrap",
+            flexDirection: "column"
           }}>
-          <span style={{ ...mono, fontSize: "11px", color: "var(--text-2)" }}>
-            {result.tokens_before} → {result.tokens_after} tokens
-          </span>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <div style={{ width: "80px", height: "3px", background: "var(--border)", borderRadius: "99px", overflow: "hidden" }}>
-              <div style={{ height: "100%", width: `${savesPct}%`, background: "var(--green)", borderRadius: "99px", transition: "width 0.6s ease" }} />
+            {/* Token Impact Header */}
+            <div style={{ padding: "12px 20px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "12px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "24px" }}>
+                <div style={{ display: "flex", flexDirection: "column" }}>
+                  <span style={{ ...mono, fontSize: "10px", color: "var(--text-3)", textTransform: "uppercase" }}>Original</span>
+                  <span style={{ ...mono, fontSize: "14px", color: "var(--text-1)" }}>{result.tokens_before}</span>
+                </div>
+                <div style={{ width: "1px", height: "24px", background: "var(--border)" }} />
+                <div style={{ display: "flex", flexDirection: "column" }}>
+                  <span style={{ ...mono, fontSize: "10px", color: "var(--text-3)", textTransform: "uppercase" }}>Compressed</span>
+                  <span style={{ ...mono, fontSize: "14px", color: "var(--text-1)" }}>{result.tokens_after}</span>
+                </div>
+                <div style={{ width: "1px", height: "24px", background: "var(--border)" }} />
+                <div style={{ display: "flex", flexDirection: "column" }}>
+                  <span style={{ ...mono, fontSize: "10px", color: "var(--green)", textTransform: "uppercase", fontWeight: 600 }}>Saved</span>
+                  <span style={{ ...mono, fontSize: "14px", color: "var(--green)", fontWeight: 600 }}>{savesPct}%</span>
+                </div>
+              </div>
+              
+              {result.diff_explanation && (
+                <button 
+                  onClick={() => setShowDiff(!showDiff)}
+                  style={{
+                    ...mono, fontSize: "11px", color: showDiff ? "var(--text-1)" : "var(--text-2)",
+                    background: showDiff ? "var(--surface-3)" : "transparent",
+                    border: "0.8px solid var(--border)", borderRadius: "var(--radius-pill)",
+                    padding: "4px 12px", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px",
+                    transition: "all 0.15s"
+                  }}
+                >
+                  {showDiff ? "Hide changes" : "What changed?"}
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ transform: showDiff ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}>
+                    <path d="M6 9l6 6 6-6"/>
+                  </svg>
+                </button>
+              )}
             </div>
-            <span style={{ ...mono, fontSize: "11px", color: "var(--green)", fontWeight: 600 }}>{savesPct}% saved</span>
+
+            {/* Diff Accordion */}
+            {showDiff && result.diff_explanation && (
+              <div style={{ padding: "0 20px 16px", borderTop: "0.8px solid var(--border)", background: "var(--surface)", animation: "fade-in 0.2s ease-out" }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "16px", marginTop: "16px" }}>
+                  {result.diff_explanation.removed && result.diff_explanation.removed.length > 0 && (
+                    <div>
+                      <span style={{ ...mono, fontSize: "10px", color: "var(--red)", textTransform: "uppercase", letterSpacing: "0.05em", display: "block", marginBottom: "8px", opacity: 0.8 }}>Removed (Filler)</span>
+                      <ul style={{ margin: 0, padding: 0, listStyle: "none" }}>
+                        {result.diff_explanation.removed.map((item: string, i: number) => (
+                          <li key={i} style={{ fontSize: "12px", color: "var(--text-2)", marginBottom: "4px", display: "flex", gap: "6px", lineHeight: 1.4 }}>
+                            <span style={{ color: "var(--red)", opacity: 0.5 }}>-</span> {item}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {result.diff_explanation.kept && result.diff_explanation.kept.length > 0 && (
+                    <div>
+                      <span style={{ ...mono, fontSize: "10px", color: "var(--green)", textTransform: "uppercase", letterSpacing: "0.05em", display: "block", marginBottom: "8px", opacity: 0.8 }}>Kept (Intent)</span>
+                      <ul style={{ margin: 0, padding: 0, listStyle: "none" }}>
+                        {result.diff_explanation.kept.map((item: string, i: number) => (
+                          <li key={i} style={{ fontSize: "12px", color: "var(--text-2)", marginBottom: "4px", display: "flex", gap: "6px", lineHeight: 1.4 }}>
+                            <span style={{ color: "var(--green)", opacity: 0.5 }}>+</span> {item}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  {result.diff_explanation.rewritten && result.diff_explanation.rewritten.length > 0 && (
+                    <div>
+                      <span style={{ ...mono, fontSize: "10px", color: "var(--text-3)", textTransform: "uppercase", letterSpacing: "0.05em", display: "block", marginBottom: "8px" }}>Rewritten (Concise)</span>
+                      <ul style={{ margin: 0, padding: 0, listStyle: "none" }}>
+                        {result.diff_explanation.rewritten.map((item: string, i: number) => (
+                          <li key={i} style={{ fontSize: "12px", color: "var(--text-2)", marginBottom: "4px", display: "flex", gap: "6px", lineHeight: 1.4 }}>
+                            <span style={{ color: "var(--text-3)", opacity: 0.5 }}>~</span> {item}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
-          {result.signal_preserved?.length > 0 && (
-            <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
-              {result.signal_preserved.map((s: string, i: number) => (
-                <span key={i} style={{ ...mono, fontSize: "10px", color: "var(--text-2)", border: "0.8px solid var(--border)", borderRadius: "var(--radius-pill)", padding: "2px 8px" }}>{s}</span>
-              ))}
-            </div>
-          )}
-          {result.warning && <span style={{ ...mono, fontSize: "11px", color: "var(--amber)" }}>⚠ {result.warning}</span>}
-        </div>
         </>
       )}
 

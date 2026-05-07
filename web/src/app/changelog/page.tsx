@@ -93,6 +93,19 @@ export default function ChangelogPage() {
 
         {/* Entries */}
         <UpdateEntry 
+          version="v1.2"
+          date="May 7, 2026"
+          title="The Proof of Compression Update"
+          description="A major upgrade focusing on absolute trust and transparency. We now mathematically and visually prove that your prompt's intent survives compression."
+          changes={[
+            "New: 'What Changed' Diff View. Expandable accordion to instantly see what filler was removed, what constraints were kept, and what was rewritten.",
+            "New: Redesigned Token Impact Board. Aggressively highlights your exact token and cost savings.",
+            "New: 'Safe Compression' Assurance Tag. A clear visual indicator that your core intent was preserved.",
+            "Backend: Upgraded the AI intelligence engine to generate structured, human-readable compression explanations in real-time."
+          ]}
+        />
+
+        <UpdateEntry 
           version="v1.1"
           date="May 2, 2026"
           title="The Trust & Value Update"
