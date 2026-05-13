@@ -48,6 +48,7 @@ Lakon is built on a **Zero-Retention** philosophy.
 
 ## 🎨 Features
 
+- **Context Snapshots (New!)**: Convert sprawling, messy chat logs into a clean, structured continuation prompt. Stop losing your AI's attention window.
 - **One-Click Compression**: A subtle, native-feeling button appears next to the "Send" button in your favorite AI tools.
 - **Multi-Platform**: Native support for **Claude.ai**, **ChatGPT**, and **Gemini**.
 - **Instant Undo**: Instantly revert to your raw prompt if needed, ensuring complete control over your context.
@@ -73,6 +74,7 @@ The easiest way to use Lakon is to download the pre-packaged extension from our 
 
 - [x] **v1.0**: Initial release for ChatGPT, Claude, and Gemini.
 - [x] **v1.1**: Trust & Value Update (Undo architecture, professional UI toasts, layout stability).
+- [x] **v1.2**: Continuity Engine (Context Snapshot feature with Map-Reduce pipeline).
 
 
 ---
