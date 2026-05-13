@@ -74,7 +74,8 @@ The easiest way to use Lakon is to download the pre-packaged extension from our 
 
 - [x] **v1.0**: Initial release for ChatGPT, Claude, and Gemini.
 - [x] **v1.1**: Trust & Value Update (Undo architecture, professional UI toasts, layout stability).
-- [x] **v1.2**: Continuity Engine (Context Snapshot feature with Map-Reduce pipeline).
+- [x] **v1.2**: Proof of Compression (Structured diff explanations and Token Impact Board).
+- [x] **v1.3**: Continuity Engine (Context Snapshots with Map-Reduce pipeline).
 
 
 ---
