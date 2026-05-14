@@ -87,5 +87,6 @@ Distributed under the **MIT License**. See `LICENSE` for more information.
 ---
 
 <p align="center">
+  [**Playground**](https://lakonai.vercel.app/app) | [**Docs**](https://lakonai.vercel.app/docs) | [**Discord**](https://discord.gg/gaJRg9w25P) | [**GitHub**](https://github.com/Sumitagarwal-i/Lakon-Public)<br>
   Built with precision by <a href="https://github.com/Sumitagarwal-i">Sumit Agarwal</a>
 </p>
